@@ -1,0 +1,123 @@
+{% load static %}
+<html lang="en"><head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>日志管理系统</title>
+    <!-- JQuery and Bootstrap js-->
+	<script src="{% static "js/jquery.min.js"%}"></script>
+	<script src="{% static "js/bootstrap.min.js" %}"></script>
+
+    <!-- Bootstrap core CSS -->
+    <link href="{% static "css/bootstrap.min.css" %}" rel="stylesheet">
+    <style>
+        body{
+            background: cornsilk;
+        }
+    </style>
+    <script>
+        $(function () {
+            $("#register").click(function () {
+                var username=$("#username").val();
+                var password=$("#password").val();
+                var repassword=$("#repassword").val();
+
+                if (password!=repassword){
+                    $("#registerres").append("<span>两次密码不一致</span>")
+                }
+                else {
+                    $.ajax({
+                            type:"POST",
+                            url: "/ajax/register",
+                            data: {"username":username,"password":password},// 要提交的数据
+                            datatype:"json",
+                        success:function (ret) {
+                                var result=ret.res;
+                                $("#registerres").append("<span>"+result+"</span>")
+                        }
+
+                });}
+                
+            })
+            
+            
+        })
+
+
+    </script>
+  </head>
+
+  <body>
+
+    <div class="container">
+      <div class="col-lg-4 col-lg-offset-4 col-sm-6 col-sm-offset-3 col-xs-8 col-xs-offset-2" id="logindev">
+      <form action="/login_handle" method="post">
+        <h2>日志管理系统登录</h2>
+        <label for="inputUsername" class="sr-only">Username</label>
+        <input type="text" id="inputUsername"  name="username" class="form-control" placeholder="Username" >
+        <label for="inputPassword" class="sr-only">Password</label>
+        <input type="password" id="inputPassword" name="password" class="form-control" placeholder="Password" >
+        <div class="checkbox">
+          <label>
+            <input type="checkbox" value="remember-me"> Remember me
+          </label>
+        </div>
+<button class="btn btn-primary " type="submit">Sign  in</button>
+<p class="btn btn-danger " data-toggle="modal" data-target="#showregister">Register</p>
+      </form>
+
+  </div>
+
+        <div class="modal fade" id="showregister" tabindex="-1" role="dialog"  aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+					&times;
+				</button>
+				<h4 class="modal-title" id="myModalLabel">
+					注册用户
+				</h4>
+			</div>
+			<div class="modal-body">
+ <div class="container-fluid">
+                                    <form class="form-horizontal"  method="post">
+                                        <div class="form-group ">
+                                            <div class="col-xs-8 ">
+                                                <input type="text" class="form-control" id="username"  placeholder="用户名">
+                                            </div>
+                                        </div>
+                                         <div class="form-group ">
+                                            <div class="col-xs-8 ">
+                                                <input type="password" class="form-control" id="password" placeholder="密码">
+                                            </div>
+                                        </div>
+                                         <div class="form-group ">
+                                              <div class="col-xs-8 ">
+                                                <input type="password" class="form-control" id="repassword" placeholder="确认密码">
+                                                  <div id="registerres">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">关闭
+				</button>
+				<button type="button" class="btn btn-primary" id="register">
+					注册
+				</button>
+			</div>
+		</div><!-- /.modal-content -->
+	</div><!-- /.modal -->
+</div>
+    </div> <!-- /container -->
+
+
+
+
+</body></html>

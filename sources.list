@@ -1,0 +1,3 @@
+#deb-src http://debian.cn99.com/debian/ etch main
+deb http://mirrors.163.com/debian/ stable main
+deb-src http://mirrors.163.com/debian/ stable main

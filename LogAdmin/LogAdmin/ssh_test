@@ -1,0 +1,75 @@
+import paramiko
+import websocket
+import os
+def log_get():
+    ssh = paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    ssh.connect("192.168.1.48",22,"root","redhat")
+    path='/usr/servers/nginx/logs/'
+    cmd = 'ls '+path
+    stdin, stdout, stderr = ssh.exec_command( cmd)
+    for line in [ str(i.replace('\n', '')) for i in stdout.readlines()]:
+        print type(line)
+
+        # line=stdout.readline()
+        # if line:
+        #     print line
+    ssh.close()
+
+
+def SearchLog(ip, url, secret):
+    ssh = paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    ssh.connect(ip, 22, "root", secret)
+    cmd = 'ls ' + url
+    stdin, stdout, stderr = ssh.exec_command(cmd)
+    a = []
+    for i in stdout:
+        a.append(str(i).strip('\n'))
+    ssh.close()
+    print a
+    return a
+# SearchLog('192.168.1.48','/usr/servers/nginx/logs/','redhat')
+
+def AwkLog(ip,url,secret,concurrency):
+    ssh = paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    ssh.connect(ip, 22, "root", secret)
+    cmd="awk '{ print $1,$4}' "+url+" |sort -n|uniq -c|awk '$1 > "+concurrency +"'|awk 'NR>1'"
+    stdin,stdout,stderr=ssh.exec_command(cmd)
+    a=[]
+    for i in stdout:
+        line=str(i).split()
+        dict={'count':line[0],'ip':line[1],'time':line[2].strip('[')}
+        a.append(dict)
+    print a
+    ssh.close()
+
+def GrepLog(ip,logpath,string,row):
+    pkey='C:\ssh-key\id_rsa'
+    key=paramiko.RSAKey.from_private_key_file(pkey)
+    ssh = paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    ssh.connect(hostname=ip, port=22, username="root",pkey=key)
+    cmd ='tail -'+row+" "+logpath+'|awk '+'\'/'+string+'/\''
+    # cmd = "grep "+string+" "+logpath
+    print cmd
+    stdin,stdout,stderr=ssh.exec_command(cmd)
+    a=[]
+    for i in stdout:
+         a.append('<br>'+str(i).replace(string,"<span class=\"keyword\">"+string+"</span>"))
+    ssh.close()
+    grepstr=''.join(a)
+    print a
+    print grepstr
+    return grepstr
+
+
+
+
+
+config_secret()
+
+# host=[{'ip': u'192.168.1.48', 'secret': u'redhat', 'hostname': u'host48', 'HID': 1}, {'ip': u'192.168.1.47', 'secret': u'redhat', 'hostname': u'host47', 'HID': 2}]
+# for i in host:
+#     print type(str(i['hostname']))

@@ -1,0 +1,227 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>显示日志</title>
+    <script src="{% static "js/jquery.min.js" %}"></script>
+    <script src="{%  static "js/bootstrap.min.js" %}"></script>
+     <link href="{% static "css/bootstrap.min.css" %}" rel="stylesheet">
+        <link rel="stylesheet" type="text/css" href="{% static "css/common.css" %}" />
+        <link rel="stylesheet" type="text/css" href="{% static "css/slide.css" %}" />
+        <link rel="stylesheet" type="text/css" href="{% static "css/bootstrap.min.css" %}" />
+        <link rel="stylesheet" type="text/css" href="{% static "css/flat-ui.min.css" %}" />
+        <link rel="stylesheet" type="text/css" href="{% static "css/jquery.nouislider.css" %}">
+
+    <script>
+        $(function () {
+            //隐藏awk div
+            var type=$("#apptype").val();
+            var name=$("#logname").val();
+            var rename = /^\w*access\.log\w*$/
+            lnlogname=rename.test($.trim(name))
+            if (type!='system'||lnlogname==false){$("#awk").hide();}
+            $("#showawk").hide();
+
+
+            var a;                      //全局定时器
+
+            $("#ref").click(function () {  //定时器以及btn变化
+
+                if($(this).val()=='1'){
+                     clearInterval(a);
+                   a = setInterval(reflog,1500);
+                   $(this).val('0');
+                    $(this).html('暂停');
+                }
+                else {
+                    clearInterval(a);
+                    {#                    $("#showlog").empty();#}
+                    $(this).val('1');
+                    $(this).html('tail -f');
+
+                }
+
+               function reflog() { //ajax请求日志信息方法
+                    var aname=$("#aname").val();
+                    var logname=$("#logname").val();
+                    var logrow=$("#logrow").val();
+                   $.ajax({
+                            type:"POST",
+                            url: "/ajax/refLog",
+                            data: {"aname":aname,"logname":logname,"logrow":logrow},// 要提交的数据
+                            datatype:"json",
+                       success:function (ret) {
+                                var log=ret.res
+                                $("#showlog").empty();
+                                $("#showlog").append(log)
+                       }
+                   });
+               }
+            });
+
+            $("#concurrence").click(function () { //查询获取并发信息
+                 var aname=$("#aname").val();
+                var logname=$("#logname").val();
+                var counts=$("#counts").val();
+
+                $("#showawk").show();
+                $.ajax({
+                            type:"POST",
+                            url: "/ajax/refAwk",
+                            data: {"aname":aname,"logname":logname,"counts":counts},// 要提交的数据
+                            datatype:"json",
+                       success:function (ret) {
+                                var awk=ret.res;
+                                $("#awkrow").empty();
+                                for (i=0;i<awk.length;i++){
+                                $("#awkrow").append("<div class=\"row\" >\n" +
+                                    "                            <div class=\"col-xs-2 \">" + awk[i].ip + "</div>" +
+                                    "                            <div  class=\"col-xs-2 \">"+awk[i].time+ "</div>" +
+                                    "                            <div class=\"col-xs-1 \">\n"+awk[i].count + "</div>" +
+                                    "                            <div class=\"col-xs-2\">\n" +
+                                    "                            </div>\n" +
+                                    "\n" +
+                                    "                        </div>")
+                                }}
+                   });
+            });
+
+            $("#Search").click(function () { //过滤查询
+                var aname=$("#aname").val();
+                var logname=$("#logname").val();
+                var keyword=$("#keyword").val();
+                var greprow=$("#greprow").val();
+                $.ajax({
+                            type:"POST",
+                            url: "/ajax/grepLog",
+                            data: {"aname":aname,"logname":logname,"keyword":keyword,"greprow":greprow},// 要提交的数据
+                            datatype:"json",
+                    success:function (ret) {
+                                var grep=ret.res;
+                                $("#showgrep").html(grep)
+                                }
+                })
+            });
+
+            $("#emptytail").click(function () { //清空tail控制台
+               $("#showlog").empty();
+            });
+            $("#emptygrep").click(function () {//清空grep控制台
+                $("#showgrep").empty();
+
+            })
+
+
+
+
+
+
+
+
+        })
+
+
+    </script>
+
+    <style>
+        body{
+            background: cornsilk;
+        }
+        .keyword{color: red}
+
+        #showlog{
+
+            background: black;
+            color:white;
+            font-size:small;
+        }
+        #showgrep{
+            background: black;
+            color: white;
+            font-size: small;
+        }
+
+    </style>
+
+</head>
+<body>
+  <h4>日志详情页面</h4>
+
+
+
+
+
+
+
+ <div id="showlog">
+
+ </div>
+
+
+
+
+<br><div id="loginfo">
+
+    <label for="sName" >应用名称：</label>
+    <input type="text" disabled="disabled" id="aname" value="{{ app.aname }}" placeholder="">
+
+    <label for="sName">日志名称：</label>
+    <input type="text" disabled="disabled" id="logname" value="{{ logname }}" placeholder="">
+
+    <label for="sName">应用类别：</label>
+    <input type="text" disabled="disabled" id="apptype" value="{{ apptype }}" placeholder="">
+
+    <label for="sName" >显示行数：</label>
+    <input type="number"   id="logrow" value="100">
+
+    <button type="button" class="btn btn-primary " id="ref" value="1">tail -f</button>
+      <button type="button" class="btn btn-danger" id="emptytail">清空</button>
+</div>
+
+<div id="grep">
+    <label for="sName">请输入过滤字段：</label>
+    <input type="text" id="keyword" placeholder="">
+    <label>过滤行数：</label>
+    <input type="text" id="greprow" placeholder="">
+    <button type="button" class="btn btn-primary" id="Search">过滤查询</button>
+  <button type="button" class="btn btn-danger" id="emptygrep">清空</button>
+
+    <div id="showgrep">
+
+
+    </div>
+
+</div>
+
+
+
+<div id="awk">
+
+    <label for="sName" >查询大于多少的并发数：</label>
+    <input type="number"   id="counts"  placeholder="">
+    <button type="button" class="btn btn-primary " id="concurrence">查询并发数</button> <br>
+    <div id="showawk">
+    <div class="row tableHeader">
+                        <div class="col-xs-2 ">
+                            ip
+                        </div>
+                        <div class="col-xs-2 ">
+                            时间
+                        </div>
+                        <div class="col-xs-1">
+                            并发数
+                        </div>
+    </div>
+        <div class="tablebody" id="awkrow">
+            <div class="row" >
+
+            </div>
+        </div>
+    </div>
+    </div>
+
+
+
+</body>
+</html>
